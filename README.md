@@ -345,4 +345,4 @@ GET /api/meetings/{id}/action-items
 
 # 👨‍💻 Author
 
-**Ankit**
+**Ankit** Pokhariya
