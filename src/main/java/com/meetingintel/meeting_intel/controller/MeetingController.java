@@ -1,6 +1,5 @@
 package com.meetingintel.meeting_intel.controller;
 
-
 import com.meetingintel.meeting_intel.dto.MeetingRequest;
 import com.meetingintel.meeting_intel.dto.MeetingResponse;
 import com.meetingintel.meeting_intel.service.MeetingService;
@@ -12,9 +11,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.RequestParam;
 import java.util.Map;
 
 @RestController
@@ -23,20 +19,6 @@ import java.util.Map;
 public class MeetingController {
 
     private final MeetingService meetingService;
-    @GetMapping("/search")
-    public ResponseEntity<List<MeetingResponse>> searchMeetings(
-            @RequestParam String keyword,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(
-                meetingService.searchMeetings(keyword, userDetails.getUsername()));
-    }
-
-    @GetMapping("/dashboard")
-    public ResponseEntity<Map<String, Object>> getDashboard(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(
-                meetingService.getDashboard(userDetails.getUsername()));
-    }
 
     @PostMapping
     public ResponseEntity<MeetingResponse> createMeeting(
@@ -55,13 +37,32 @@ public class MeetingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MeetingResponse> getMeetingById(@PathVariable Long id) {
+    public ResponseEntity<MeetingResponse> getMeetingById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(meetingService.getMeetingById(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMeeting(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteMeeting(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
         meetingService.deleteMeeting(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<MeetingResponse>> searchMeetings(
+            @RequestParam String keyword,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                meetingService.searchMeetings(keyword, userDetails.getUsername()));
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<Map<String, Object>> getDashboard(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                meetingService.getDashboard(userDetails.getUsername()));
     }
 }

@@ -1,5 +1,6 @@
 package com.meetingintel.meeting_intel.service;
 
+import com.meetingintel.meeting_intel.repository.MeetingInsightRepository;
 import lombok.RequiredArgsConstructor;
 import com.meetingintel.meeting_intel.dto.MeetingRequest;
 import com.meetingintel.meeting_intel.dto.MeetingResponse;
@@ -14,7 +15,7 @@ import com.meetingintel.meeting_intel.entity.MeetingStatus;
 import com.meetingintel.meeting_intel.repository.ActionItemRepository;
 import java.time.LocalDate;
 import java.util.Map;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ public class MeetingService {
     private final MeetingRepository meetingRepository;
     private final UserRepository userRepository;
     private final ActionItemRepository actionItemRepository;
+    private final MeetingInsightRepository meetingInsightRepository;
 
     public MeetingResponse createMeeting(MeetingRequest request, String email) {
         User user = userRepository.findByEmail(email)
@@ -57,20 +59,19 @@ public class MeetingService {
         return mapToResponse(meeting);
     }
 
+    @Transactional
     public void deleteMeeting(Long id) {
-        meetingRepository.deleteById(id);
+        Meeting meeting = meetingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Meeting not found"));
+
+        actionItemRepository.deleteByMeetingId(id);
+
+        meetingInsightRepository.findByMeetingId(id)
+                .ifPresent(meetingInsightRepository::delete);
+
+        meetingRepository.delete(meeting);
     }
 
-    private MeetingResponse mapToResponse(Meeting meeting) {
-        MeetingResponse response = new MeetingResponse();
-        response.setId(meeting.getId());
-        response.setTitle(meeting.getTitle());
-        response.setMeetingDate(meeting.getMeetingDate());
-        response.setParticipants(meeting.getParticipants());
-        response.setStatus(meeting.getStatus().name());
-        response.setCreatedAt(meeting.getCreatedAt());
-        return response;
-    }
     public List<MeetingResponse> searchMeetings(String keyword, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -119,5 +120,16 @@ public class MeetingService {
                 "pendingActionItems", pendingItems,
                 "overdueActionItems", overdueItems
         );
+    }
+
+    private MeetingResponse mapToResponse(Meeting meeting) {
+        MeetingResponse response = new MeetingResponse();
+        response.setId(meeting.getId());
+        response.setTitle(meeting.getTitle());
+        response.setMeetingDate(meeting.getMeetingDate());
+        response.setParticipants(meeting.getParticipants());
+        response.setStatus(meeting.getStatus().name());
+        response.setCreatedAt(meeting.getCreatedAt());
+        return response;
     }
 }
