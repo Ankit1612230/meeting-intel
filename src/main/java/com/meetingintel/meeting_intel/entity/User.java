@@ -2,6 +2,7 @@ package com.meetingintel.meeting_intel.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,11 +23,27 @@ public class User {
     @Column(nullable = false)
     private String fullName;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role;
+
+    @Column(nullable = false)
+    private Boolean isApproved;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
+
         createdAt = LocalDateTime.now();
+
+        if (role == null) {
+            role = UserRole.USER;
+        }
+
+        if (isApproved == null) {
+            isApproved = false;
+        }
     }
 }
