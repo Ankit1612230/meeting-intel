@@ -31,11 +31,17 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(request.getEmail());
-        return Map.of("token", token);
+        return Map.of("message", "Registration successful. Please wait for admin approval before logging in.");
     }
 
     public Map<String, String> login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!user.getIsApproved()) {
+            throw new RuntimeException("Your account is pending approval. Please contact the admin.");
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password));
         String token = jwtUtil.generateToken(email);
