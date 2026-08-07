@@ -3,6 +3,7 @@ package com.meetingintel.meeting_intel.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meetingintel.meeting_intel.entity.ActionItem;
+import com.meetingintel.meeting_intel.entity.ActionItemStatus;
 import com.meetingintel.meeting_intel.entity.Meeting;
 import com.meetingintel.meeting_intel.entity.MeetingInsight;
 import com.meetingintel.meeting_intel.entity.MeetingStatus;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import com.meetingintel.meeting_intel.entity.ActionItemStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +67,15 @@ public class AnalysisService {
                 System.out.println("SAVING ACTION ITEM: " + item.toString());
                 ActionItem actionItem = new ActionItem();
                 actionItem.setTask(item.path("task").asText());
-                actionItem.setOwnerEmail(item.path("owner").asText());
+
+                String owner = item.path("owner").asText();
+                String ownerEmail = resolveOwnerEmail(
+                        owner,
+                        meeting.getParticipants(),
+                        meeting.getParticipantNames()
+                );
+                actionItem.setOwnerEmail(ownerEmail);
+
                 String dueDateStr = item.path("dueDate").asText();
                 if (dueDateStr != null && !dueDateStr.equals("null")
                         && !dueDateStr.isEmpty()) {
@@ -84,6 +92,7 @@ public class AnalysisService {
             actionItemRepository.saveAll(actionItems);
 
         } catch (Exception e) {
+            System.out.println("PARSING ERROR: " + e.getMessage());
             insight.setSummary("AI response parsing failed: " + e.getMessage());
         }
 
@@ -92,10 +101,12 @@ public class AnalysisService {
 
         return meetingInsightRepository.save(insight);
     }
+
     public MeetingInsight getMeetingInsight(Long meetingId) {
         return meetingInsightRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new RuntimeException("No insights found for this meeting"));
     }
+
     public ActionItem markActionItemComplete(Long itemId) {
         ActionItem item = actionItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Action item not found"));
@@ -107,5 +118,52 @@ public class AnalysisService {
     public List<ActionItem> getPendingItemsByEmail(String email) {
         return actionItemRepository.findByOwnerEmailAndStatus(
                 email, ActionItemStatus.PENDING);
+    }
+
+    private String resolveOwnerEmail(String owner, List<String> participants,
+                                     List<String> participantNames) {
+        if (owner == null || owner.isEmpty()) {
+            return participants != null && !participants.isEmpty()
+                    ? participants.get(0) : owner;
+        }
+
+        // If owner is already an email
+        if (owner.contains("@")) {
+            return owner;
+        }
+
+        // Match by participant names if provided
+        if (participantNames != null && participants != null) {
+            for (int i = 0; i < participantNames.size(); i++) {
+                String name = participantNames.get(i).toLowerCase();
+                String ownerLower = owner.toLowerCase();
+
+                if (name.contains(ownerLower) || ownerLower.contains(name)
+                        || name.startsWith(ownerLower) || ownerLower.startsWith(name)) {
+                    if (i < participants.size()) {
+                        return participants.get(i);
+                    }
+                }
+            }
+        }
+
+        // Match by email prefix
+        if (participants != null) {
+            for (String participant : participants) {
+                String emailPrefix = participant
+                        .substring(0, participant.indexOf("@"))
+                        .toLowerCase()
+                        .replace(".", " ")
+                        .replace("_", " ");
+
+                if (emailPrefix.contains(owner.toLowerCase())
+                        || owner.toLowerCase().contains(emailPrefix)) {
+                    return participant;
+                }
+            }
+            return participants.get(0);
+        }
+
+        return owner;
     }
 }

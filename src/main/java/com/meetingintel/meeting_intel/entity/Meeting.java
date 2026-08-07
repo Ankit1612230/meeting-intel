@@ -27,6 +27,11 @@ public class Meeting {
             joinColumns = @JoinColumn(name = "meeting_id"))
     @Column(name = "email")
     private List<String> participants;
+    @ElementCollection
+    @CollectionTable(name = "meeting_participant_names",
+            joinColumns = @JoinColumn(name = "meeting_id"))
+    @Column(name = "name")
+    private List<String> participantNames;
 
     @Column(columnDefinition = "TEXT")
     private String transcript;

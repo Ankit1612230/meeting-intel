@@ -17,5 +17,7 @@ public class MeetingRequest {
 
     private List<String> participants;
 
+    private List<String> participantNames;
+
     private String transcript;
 }

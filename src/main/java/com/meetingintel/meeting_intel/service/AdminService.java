@@ -1,5 +1,6 @@
 package com.meetingintel.meeting_intel.service;
 
+import com.meetingintel.meeting_intel.dto.AdminUserResponse;
 import com.meetingintel.meeting_intel.entity.User;
 import com.meetingintel.meeting_intel.entity.UserRole;
 import com.meetingintel.meeting_intel.repository.UserRepository;
@@ -13,32 +14,75 @@ public class AdminService {
 
     private final UserRepository userRepository;
 
-    public List<User> getPendingUsers() {
-        return userRepository.findByIsApproved(false);
+    public List<AdminUserResponse> getPendingUsers() {
+        return userRepository.findByIsApproved(false)
+                .stream()
+                .map(user -> new AdminUserResponse(
+                        user.getId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getRole(),
+                        user.getIsApproved(),
+                        user.getCreatedAt()
+                ))
+                .toList();
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<AdminUserResponse> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(user -> new AdminUserResponse(
+                        user.getId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getRole(),
+                        user.getIsApproved(),
+                        user.getCreatedAt()
+                ))
+                .toList();
     }
 
-    public User approveUser(Long userId) {
+    public AdminUserResponse approveUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setIsApproved(true);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        return new AdminUserResponse(
+                saved.getId(),
+                saved.getFullName(),
+                saved.getEmail(),
+                saved.getRole(),
+                saved.getIsApproved(),
+                saved.getCreatedAt()
+        );
     }
 
-    public User rejectUser(Long userId) {
+    public AdminUserResponse rejectUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.delete(user);
-        return user;
+        return new AdminUserResponse(
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getIsApproved(),
+                user.getCreatedAt()
+        );
     }
 
-    public User makeAdmin(Long userId) {
+    public AdminUserResponse makeAdmin(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setRole(UserRole.ADMIN);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        return new AdminUserResponse(
+                saved.getId(),
+                saved.getFullName(),
+                saved.getEmail(),
+                saved.getRole(),
+                saved.getIsApproved(),
+                saved.getCreatedAt()
+        );
     }
 }

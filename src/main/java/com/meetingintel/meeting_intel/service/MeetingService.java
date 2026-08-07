@@ -36,6 +36,7 @@ public class MeetingService {
         meeting.setTitle(request.getTitle());
         meeting.setMeetingDate(request.getMeetingDate());
         meeting.setParticipants(request.getParticipants());
+        meeting.setParticipantNames(request.getParticipantNames());
         meeting.setTranscript(request.getTranscript());
         meeting.setCreatedBy(user);
 
