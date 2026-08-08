@@ -16,9 +16,9 @@ public class ReminderSchedulerService {
     private final ActionItemRepository actionItemRepository;
     private final EmailService emailService;
 
-    @Scheduled(cron = "0 0 9 * * *")
+    @Scheduled(cron = "0 */2 * * * *")
     public void sendDailyReminders() {
-        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        LocalDate tomorrow = LocalDate.parse("2026-08-08");
         List<ActionItem> dueTomorrow = actionItemRepository
                 .findByDueDateAndStatus(tomorrow, ActionItemStatus.PENDING);
 
