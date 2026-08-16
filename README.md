@@ -343,7 +343,8 @@ GET /api/meetings/{id}/action-items
 
 ---
 * Made a User approval system so admin can approve and reject request 
-* Added 2 unit tests
+* Performed 3 unit test and 1 integration test
+* Updatd the  llm model
 # 👨‍💻 Author
 
 **Ankit** Pokhariya
