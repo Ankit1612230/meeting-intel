@@ -345,6 +345,7 @@ GET /api/meetings/{id}/action-items
 * Made a User approval system so admin can approve and reject request 
 * Performed 3 unit test and 1 integration test
 * Updatd the  llm model 
+* updated the read me and added new test
 # 👨‍💻 Author
 
 **Ankit** Pokhariya
