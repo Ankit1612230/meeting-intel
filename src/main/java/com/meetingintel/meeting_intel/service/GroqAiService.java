@@ -33,16 +33,18 @@ public class GroqAiService {
                     .replace("\n", "\\n")
                     .replace("\r", "\\r");
 
-            String prompt = "Analyze the following meeting transcript and extract:\\n"
-                    + "1. A brief summary\\n"
-                    + "2. Key decisions made\\n"
-                    + "3. Action items with owner email (use exact email addresses from the transcript if mentioned) and due date in YYYY-MM-DD format only\\n\\n"
-                    + "Return ONLY this JSON format, nothing else:\\n"
-                    + "{\\\"summary\\\": \\\"...\\\", "
-                    + "\\\"decisions\\\": [\\\"decision1\\\"], "
-                    + "\\\"actionItems\\\": [{\\\"task\\\": \\\"...\\\", "
-                    + "\\\"owner\\\": \\\"...\\\", \\\"dueDate\\\": \\\"YYYY-MM-DD\\\"}]}"
-                    + "\\n\\nTranscript: " + escapedTranscript;
+            String prompt = "You are a meeting analyst. Analyze the transcript below and extract structured information.\\n\\n"
+                    + "STRICT RULES:\\n"
+                    + "1. Return ONLY raw JSON - no markdown, no backticks, no explanation\\n"
+                    + "2. owner field must contain the first name of the person responsible - NEVER leave it empty\\n"
+                    + "3. If owner name is mentioned in the transcript, extract it\\n"
+                    + "4. dueDate must be YYYY-MM-DD format only - if not mentioned use null\\n"
+                    + "5. summary must be 2-3 sentences\\n\\n"
+                    + "Return exactly this JSON structure:\\n"
+                    + "{\\\"summary\\\": \\\"string\\\","
+                    + "\\\"decisions\\\": [\\\"string\\\"],"
+                    + "\\\"actionItems\\\": [{\\\"task\\\": \\\"string\\\", \\\"owner\\\": \\\"first name only\\\", \\\"dueDate\\\": \\\"YYYY-MM-DD or null\\\"}]}\\n\\n"
+                    + "Meeting Transcript:\\n" + escapedTranscript;
 
             String requestBody = "{"
                     + "\"model\": \"" + model + "\","
