@@ -36,7 +36,11 @@ public class AnalysisService {
             throw new RuntimeException("No transcript found for this meeting");
         }
 
-        String aiResponse = groqAiService.analyzeTranscript(meeting.getTranscript());
+        String aiResponse = groqAiService.analyzeTranscript(
+                meeting.getTranscript(),
+                meeting.getParticipants(),
+                meeting.getParticipantNames()
+        );
 
         MeetingInsight insight = meetingInsightRepository
                 .findByMeetingId(meetingId)
@@ -122,17 +126,21 @@ public class AnalysisService {
 
     private String resolveOwnerEmail(String owner, List<String> participants,
                                      List<String> participantNames) {
+
+        // Step 1: The AI should now return a real email directly (see updated prompt).
+        // Validate it's actually one of this meeting's participants before trusting it.
+        if (owner != null && owner.contains("@") && participants != null
+                && participants.stream().anyMatch(p -> p.equalsIgnoreCase(owner))) {
+            return owner;
+        }
+
+        // Step 2: AI didn't return a valid participant email (missing, malformed,
+        // or hallucinated) - fall back to the old fuzzy name-matching as a safety net.
         if (owner == null || owner.isEmpty()) {
             return participants != null && !participants.isEmpty()
                     ? participants.get(0) : owner;
         }
 
-        // If owner is already an email
-        if (owner.contains("@")) {
-            return owner;
-        }
-
-        // Match by participant names if provided
         if (participantNames != null && participants != null) {
             for (int i = 0; i < participantNames.size(); i++) {
                 String name = participantNames.get(i).toLowerCase();
@@ -147,20 +155,7 @@ public class AnalysisService {
             }
         }
 
-        // Match by email prefix
-        if (participants != null) {
-            for (String participant : participants) {
-                String emailPrefix = participant
-                        .substring(0, participant.indexOf("@"))
-                        .toLowerCase()
-                        .replace(".", " ")
-                        .replace("_", " ");
-
-                if (emailPrefix.contains(owner.toLowerCase())
-                        || owner.toLowerCase().contains(emailPrefix)) {
-                    return participant;
-                }
-            }
+        if (participants != null && !participants.isEmpty()) {
             return participants.get(0);
         }
 
