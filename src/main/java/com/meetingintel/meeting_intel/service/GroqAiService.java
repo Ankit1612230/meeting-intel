@@ -79,12 +79,12 @@ public class GroqAiService {
                     .asText();
 
         }  catch (Exception e) {
-        // Print full error details
-        System.out.println("GROQ ERROR: " + e.getMessage());
-        if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException ex) {
-            System.out.println("GROQ RESPONSE BODY: " + ex.getResponseBodyAsString());
+            // Print full error details
+            System.out.println("GROQ ERROR: " + e.getMessage());
+            if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException ex) {
+                System.out.println("GROQ RESPONSE BODY: " + ex.getResponseBodyAsString());
+            }
+            throw new RuntimeException("Failed to analyze transcript: " + e.getMessage());
         }
-        throw new RuntimeException("Failed to analyze transcript: " + e.getMessage());
-    }
     }
 }

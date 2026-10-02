@@ -83,7 +83,11 @@ public class AnalysisServiceTest {
         savedInsight.setAnalyzedAt(LocalDateTime.now());
 
         when(meetingRepository.findById(1L)).thenReturn(Optional.of(meeting));
-        when(groqAiService.analyzeTranscript(any())).thenReturn(aiResponse);
+        when(groqAiService.analyzeTranscript(
+                any(String.class),
+                any(List.class),
+                any(List.class)
+        )).thenReturn(aiResponse);
         when(meetingInsightRepository.findByMeetingId(1L)).thenReturn(Optional.empty());
         when(meetingInsightRepository.save(any())).thenReturn(savedInsight);
         when(meetingRepository.save(any())).thenReturn(meeting);
@@ -91,8 +95,11 @@ public class AnalysisServiceTest {
         MeetingInsight result = analysisService.analyzeMeeting(1L);
 
         assertNotNull(result);
-        verify(groqAiService, times(1)).analyzeTranscript(any());
-        verify(actionItemRepository, times(1)).saveAll(any());
+        verify(groqAiService, times(1)).analyzeTranscript(
+                any(String.class),
+                any(List.class),
+                any(List.class)
+        );        verify(actionItemRepository, times(1)).saveAll(any());
         verify(meetingInsightRepository, times(1)).save(any());
     }
 }

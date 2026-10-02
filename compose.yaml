@@ -8,3 +8,10 @@ services:
       POSTGRES_DB: meetingdb
     ports:
       - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+    external: true
+    name: e288280b3c7333f748785c19c77fc8aee11368699bbcd36628b873fc56549242
